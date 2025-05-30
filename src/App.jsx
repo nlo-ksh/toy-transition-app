@@ -4,17 +4,50 @@ import React from 'react';
 import ButtonList from './ButtonList';
 import {observer} from 'mobx-react-lite';
 import { createStore, mutatorAction } from 'satcheljs';
+import { myStore } from './myStore';
+import { MountCallback } from './MountCallback';
 
-const store = createStore('text', {text: "TEST"});
+const store = createStore('text', {text: "TEST", count: 0});
 
 const setText = mutatorAction('SET_TEXT', function(newText) {
   store().text = newText;
 });
 
+const upCount = mutatorAction('UP_COUNT', function() {
+  store().count++;
+});
+
+let startTime = 0.0;
+let counting = false;
+
+const startTimer = function() {
+  const d = new Date();
+  startTime = d.getTime();
+};
+
+var accumulatedTimer = 0.0;
+var timerCount = -1000;
+
+const endTimer = function() {
+  const d = new Date();
+  accumulatedTimer +=  d.getTime() - startTime;
+  timerCount++;
+  console.log(accumulatedTimer, ", ", timerCount);
+  console.log("Average render time: ", accumulatedTimer/(timerCount == 0? 0.000001 : timerCount));
+}
+
+const resetTimer = function() {
+  accumulatedTimer = 0.0;
+  timerCount = 0;
+  counting = true;
+}
+
 // State: x.0 for no startTransition. x.5 for startTransition
 // 0.x for react managed state
 // 1.x for mobx managed state directly used
 // 2.x for mobx managed state through useDeferredValue
+// 3.x for my state managed through useSyncExternalStore
+// 4.x for running count experiment
 
 const App = observer(function App() {
   const [getMode, setMode] = React.useState(0.0);
@@ -26,21 +59,28 @@ const App = observer(function App() {
   };
 
   const deferredText = React.useDeferredValue(store().text)
+  const syncStore = React.useSyncExternalStore(myStore.subscribe, myStore.getSnapshot);
   const buttonVal = React.useMemo(() => {
     if (getMode < 1.0) {
       return getState;
     } else if (getMode < 2.0) {
       return store().text;
-    } else {
+    } else if (getMode < 3.0) {
       return deferredText;
+    } else if (getMode < 4.0) {
+      return myStore.getText();
+    } else {
+      return store().count;
     }
-  }, [getMode, getState, store().text, deferredText]);
+  }, [getMode, getState, store().text, deferredText, myStore.getText(), store().count]);
 
   const updateTextState = () => {
     if (getMode < 1.0) {
       setState(inputRef.value);
     } else if (getMode < 3.0) {
       setText(inputRef.value);
+    } else if (getMode < 4.0) {
+      myStore.changeText(parseInt(inputRef.value));
     }
   }
 
@@ -60,15 +100,42 @@ const App = observer(function App() {
     console.log("New mode: ", getMode);
   }, [getMode]);
 
+  const finishedRender = React.useCallback(async () => {
+    endTimer();
+    if (counting && store().count >= 0 && store().count < 1000) {
+      await new Promise(r => setTimeout(r, 1500));
+      startTimer();
+      upCount();
+      console.log("here?");
+    } else {
+      counting = false;
+    }
+  });
+
+  const runExperiment = React.useCallback(async () => {
+    resetTimer();
+    startTimer();
+    upCount(); 
+  });
+
   return (
+    <MountCallback callback={finishedRender}>
     <div className="App">
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
 
       <div>
+        Current count: {store().count}
+      </div>
+      <div>
+        <button onClick={runExperiment}>Run experiment</button>
+      </div>
+      <div>
         <button onClick={() => {setMode(getMode + (0 - parseInt(getMode)))}}>React state</button>
         <button onClick={() => {setMode(getMode + (1 - parseInt(getMode)))}}>Mobx state</button>
         <button onClick={() => {setMode(getMode + (2 - parseInt(getMode)))}}>Mobx state useDefferredValue</button>
+        <button onClick={() => {setMode(getMode + (3 - parseInt(getMode)))}}>Custom sync state</button>
+        <button onClick={() => {setMode(getMode + (4 - parseInt(getMode)))}}>Rerender experiment</button>
       </div>
       <div>
         <button onClick={() => {setMode(parseInt(getMode))}}>no startTransition</button>
@@ -79,6 +146,7 @@ const App = observer(function App() {
       <ButtonList name={buttonVal}></ButtonList>
       </header>
     </div>
+    </MountCallback>
   );
 });
 
