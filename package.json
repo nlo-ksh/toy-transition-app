@@ -4,9 +4,8 @@
   "private": true,
   "dependencies": {
     "cra-template": "1.2.0",
-    "mobx": "^6.13.5",
-    "mobx-react": "^9.2.0",
-    "mobx-react-lite": "^4.1.0",
+    "mobx-react-lite3": "npm:mobx-react-lite@^3.4.0",
+    "mobx-react-lite4": "npm:mobx-react-lite@^4.1.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-scripts": "5.0.1",

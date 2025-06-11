@@ -2,7 +2,9 @@ import logo from './logo.svg';
 import './App.css';
 import React from 'react';
 import ButtonList from './ButtonList';
-import {observer} from 'mobx-react-lite';
+//import {observer} from 'mobx-react-lite';
+import {observer as observerNew} from 'mobx-react-lite4';
+import {observer as observerOld} from 'mobx-react-lite3';
 import { createStore, mutatorAction } from 'satcheljs';
 import { myStore } from './myStore';
 import { MountCallback } from './MountCallback';
@@ -29,11 +31,20 @@ var accumulatedTimer = 0.0;
 var timerCount = -1000;
 
 const endTimer = function() {
-  const d = new Date();
-  accumulatedTimer +=  d.getTime() - startTime;
-  timerCount++;
+  quietEndTimer();
   console.log(accumulatedTimer, ", ", timerCount);
   console.log("Average render time: ", accumulatedTimer/(timerCount == 0? 0.000001 : timerCount));
+}
+
+const printTimerData = function() {
+  console.log(accumulatedTimer, ", ", timerCount);
+  console.log("Average render time: ", accumulatedTimer/(timerCount == 0? 0.000001 : timerCount));
+}
+
+const quietEndTimer = function() {
+  const d = new Date();
+  accumulatedTimer += d.getTime() - startTime;
+  timerCount++;
 }
 
 const resetTimer = function() {
@@ -49,7 +60,7 @@ const resetTimer = function() {
 // 3.x for my state managed through useSyncExternalStore
 // 4.x for running count experiment
 
-const App = observer(function App() {
+const AppBase = function AppBase() {
   const [getMode, setMode] = React.useState(0.0);
   const [getState, setState] = React.useState("TEST2");
 
@@ -101,9 +112,13 @@ const App = observer(function App() {
   }, [getMode]);
 
   const finishedRender = React.useCallback(async () => {
-    endTimer();
-    if (counting && store().count >= 0 && store().count < 1000) {
-      await new Promise(r => setTimeout(r, 1500));
+    quietEndTimer();
+    if (counting && store().count >= 0 && store().count < 5000) {
+      if (store().count % 500 == 0) {
+        printTimerData();
+        resetTimer();
+      }
+      await new Promise(r => setTimeout(r, 500));
       startTimer();
       upCount();
       console.log("here?");
@@ -148,6 +163,26 @@ const App = observer(function App() {
     </div>
     </MountCallback>
   );
-});
+};
+
+const AppNew = observerNew(AppBase);
+const AppOld = observerOld(AppBase);
+
+const App = function App({startAsNewMobx}) {
+  let initVersion = false;
+  if (startAsNewMobx) {
+    initVersion = true;
+  }
+  const [isNewVersion, setIsNewVersion] = React.useState(initVersion);
+
+  const toggleVersion = React.useCallback(() => {setIsNewVersion(!isNewVersion);}, [isNewVersion]);
+  console.log(isNewVersion);
+  let VersionedApp = isNewVersion ? AppNew : AppOld;
+  return (<div>
+    Mobx version: {isNewVersion ? "new" : "old"}
+        <button onClick={() => {const v = isNewVersion; setIsNewVersion(!v);}}>Toggle Version</button>
+    <VersionedApp/>
+  </div>);
+};
 
 export default App;
