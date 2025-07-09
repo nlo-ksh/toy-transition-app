@@ -115,6 +115,16 @@ const AppBase = function AppBase() {
 
   const finishedRender = React.useCallback(async () => {
     performance.mark("endRender" + x++);
+    
+        // Initialize page timings
+        var pageTimings = window._pageTimings || (window._pageTimings = {});
+
+        // Collect perf metrics from page and add them to pageTimings object
+        performance.getEntriesByType('mark').forEach(perfMark =>{
+            if (perfMark.name.indexOf('TTVR') >= 0){
+                pageTimings[perfMark.name] = Math.round(perfMark.startTime);
+    }
+});
     quietEndTimer();
     if (counting && store().count >= 0 && store().count < 5000) {
       if (store().count % 500 == 0) {
