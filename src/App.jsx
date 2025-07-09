@@ -64,6 +64,7 @@ const AppBase = function AppBase() {
   const [getMode, setMode] = React.useState(0.0);
   const [getState, setState] = React.useState("TEST2");
 
+  let x = 0;
   let inputRef = null;
   const setRef = element => {
     inputRef = element;
@@ -104,6 +105,7 @@ const AppBase = function AppBase() {
   }
 
   const setButtons = React.useCallback(() => {
+    performance.mark("startRender " + x)
     updateText();
   });
 
@@ -112,6 +114,7 @@ const AppBase = function AppBase() {
   }, [getMode]);
 
   const finishedRender = React.useCallback(async () => {
+    performance.mark("endRender" + x++);
     quietEndTimer();
     if (counting && store().count >= 0 && store().count < 5000) {
       if (store().count % 500 == 0) {
