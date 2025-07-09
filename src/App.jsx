@@ -60,11 +60,12 @@ const resetTimer = function() {
 // 3.x for my state managed through useSyncExternalStore
 // 4.x for running count experiment
 
+  let x = 0;
+  let kickedOff = false;
 const AppBase = function AppBase() {
   const [getMode, setMode] = React.useState(0.0);
   const [getState, setState] = React.useState("TEST2");
 
-  let x = 0;
   let inputRef = null;
   const setRef = element => {
     inputRef = element;
@@ -106,6 +107,7 @@ const AppBase = function AppBase() {
 
   const setButtons = React.useCallback(() => {
     performance.mark("startRender " + x)
+    kickedOff = true;
     updateText();
   });
 
@@ -114,17 +116,22 @@ const AppBase = function AppBase() {
   }, [getMode]);
 
   const finishedRender = React.useCallback(async () => {
-    performance.mark("endRender" + x++);
+    if (kickedOff) {
+    kickedOff = false;
+    performance.mark("endRender " + x);
+    x += 1;
+    
+    console.log(performance.getEntriesByType('mark'));
     
         // Initialize page timings
         var pageTimings = window._pageTimings || (window._pageTimings = {});
 
         // Collect perf metrics from page and add them to pageTimings object
         performance.getEntriesByType('mark').forEach(perfMark =>{
-            if (perfMark.name.indexOf('TTVR') >= 0){
-                pageTimings[perfMark.name] = Math.round(perfMark.startTime);
+          pageTimings[perfMark.name] = Math.round(perfMark.startTime);
+        }
+      );
     }
-});
     quietEndTimer();
     if (counting && store().count >= 0 && store().count < 5000) {
       if (store().count % 500 == 0) {
