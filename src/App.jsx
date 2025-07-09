@@ -141,6 +141,8 @@ const AppBase = function AppBase() {
       await new Promise(r => setTimeout(r, 500));
       startTimer();
       upCount();
+    performance.mark("startRender " + x)
+    kickedOff = true;
       console.log("here?");
     } else {
       counting = false;
@@ -151,6 +153,8 @@ const AppBase = function AppBase() {
     resetTimer();
     startTimer();
     upCount(); 
+    performance.mark("startRender " + x)
+    kickedOff = true;
   });
 
   return (
