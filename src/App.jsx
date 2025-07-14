@@ -140,9 +140,9 @@ const AppBase = function AppBase() {
       }
       await new Promise(r => setTimeout(r, 500));
       startTimer();
-      upCount();
     performance.mark("startRender " + x)
     kickedOff = true;
+      upCount();
       console.log("here?");
     } else {
       counting = false;
@@ -152,9 +152,9 @@ const AppBase = function AppBase() {
   const runExperiment = React.useCallback(async () => {
     resetTimer();
     startTimer();
-    upCount(); 
     performance.mark("startRender " + x)
     kickedOff = true;
+    upCount(); 
   });
 
   return (
