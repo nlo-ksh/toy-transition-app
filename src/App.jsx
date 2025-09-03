@@ -6,6 +6,11 @@ import ButtonList from './ButtonList';
 import {observer as observerNew} from 'mobx-react-lite4';
 import {observer as observerOld} from 'mobx-react-lite3';
 import { createStore, mutatorAction } from 'satcheljs';
+import {
+  RecoilRoot,
+  atom,
+  useRecoilState,
+} from 'recoil';
 import { myStore } from './myStore';
 import { MountCallback } from './MountCallback';
 
@@ -17,6 +22,11 @@ const setText = mutatorAction('SET_TEXT', function(newText) {
 
 const upCount = mutatorAction('UP_COUNT', function() {
   store().count++;
+});
+
+const textAtom = atom({
+  key: 'textAtom',
+  default: 'TEST3',
 });
 
 let startTime = 0.0;
@@ -65,6 +75,7 @@ const resetTimer = function() {
 const AppBase = function AppBase() {
   const [getMode, setMode] = React.useState(0.0);
   const [getState, setState] = React.useState("TEST2");
+  const [getAtom, setAtom] = useRecoilState(textAtom);
 
   let inputRef = null;
   const setRef = element => {
@@ -82,10 +93,12 @@ const AppBase = function AppBase() {
       return deferredText;
     } else if (getMode < 4.0) {
       return myStore.getText();
-    } else {
+    } else if (getMode < 5.0) {
       return store().count;
+    } else {
+      return getAtom;
     }
-  }, [getMode, getState, store().text, deferredText, myStore.getText(), store().count]);
+  }, [getMode, getState, store().text, deferredText, myStore.getText(), store().count, getAtom]);
 
   const updateTextState = () => {
     if (getMode < 1.0) {
@@ -94,6 +107,8 @@ const AppBase = function AppBase() {
       setText(inputRef.value);
     } else if (getMode < 4.0) {
       myStore.changeText(parseInt(inputRef.value));
+    } else if (getMode < 6.0) {
+      setAtom(inputRef.value);
     }
   }
 
@@ -175,6 +190,7 @@ const AppBase = function AppBase() {
         <button onClick={() => {setMode(getMode + (2 - parseInt(getMode)))}}>Mobx state useDefferredValue</button>
         <button onClick={() => {setMode(getMode + (3 - parseInt(getMode)))}}>Custom sync state</button>
         <button onClick={() => {setMode(getMode + (4 - parseInt(getMode)))}}>Rerender experiment</button>
+        <button onClick={() => {setMode(getMode + (5 - parseInt(getMode)))}}>Recoil</button>
       </div>
       <div>
         <button onClick={() => {setMode(parseInt(getMode))}}>no startTransition</button>
@@ -202,11 +218,13 @@ const App = function App({startAsNewMobx}) {
   const toggleVersion = React.useCallback(() => {setIsNewVersion(!isNewVersion);}, [isNewVersion]);
   console.log(isNewVersion);
   let VersionedApp = isNewVersion ? AppNew : AppOld;
-  return (<div>
+  return (
+    <RecoilRoot><div>
     Mobx version: {isNewVersion ? "new" : "old"}
         <button onClick={() => {const v = isNewVersion; setIsNewVersion(!v);}}>Toggle Version</button>
     <VersionedApp/>
-  </div>);
+  </div>
+  </RecoilRoot>);
 };
 
 export default App;
