@@ -1,16 +1,16 @@
 {
   "files": {
     "main.css": "/toy-transition-app/static/css/main.a56e921f.css",
-    "main.js": "/toy-transition-app/static/js/main.9e9050d2.js",
+    "main.js": "/toy-transition-app/static/js/main.1e1fb305.js",
     "static/js/488.928a1157.chunk.js": "/toy-transition-app/static/js/488.928a1157.chunk.js",
     "static/media/logo.svg": "/toy-transition-app/static/media/logo.6ce24c58023cc2f8fd88fe9d219db6c6.svg",
     "index.html": "/toy-transition-app/index.html",
     "main.a56e921f.css.map": "/toy-transition-app/static/css/main.a56e921f.css.map",
-    "main.9e9050d2.js.map": "/toy-transition-app/static/js/main.9e9050d2.js.map",
+    "main.1e1fb305.js.map": "/toy-transition-app/static/js/main.1e1fb305.js.map",
     "488.928a1157.chunk.js.map": "/toy-transition-app/static/js/488.928a1157.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.a56e921f.css",
-    "static/js/main.9e9050d2.js"
+    "static/js/main.1e1fb305.js"
   ]
 }
