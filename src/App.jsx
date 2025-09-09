@@ -9,7 +9,7 @@ import { createStore, mutatorAction } from 'satcheljs';
 import {
   RecoilRoot,
   atom,
-  useRecoilState,
+  useRecoilState_TRANSITION_SUPPORT_UNSTABLE,
 } from 'recoil';
 import { myStore } from './myStore';
 import { MountCallback } from './MountCallback';
@@ -75,7 +75,7 @@ const resetTimer = function() {
 const AppBase = function AppBase() {
   const [getMode, setMode] = React.useState(0.0);
   const [getState, setState] = React.useState("TEST2");
-  const [getAtom, setAtom] = useRecoilState(textAtom);
+  const [getAtom, setAtom] = useRecoilState_TRANSITION_SUPPORT_UNSTABLE(textAtom);
 
   let inputRef = null;
   const setRef = element => {
