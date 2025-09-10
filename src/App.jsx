@@ -6,11 +6,8 @@ import ButtonList from './ButtonList';
 import {observer as observerNew} from 'mobx-react-lite4';
 import {observer as observerOld} from 'mobx-react-lite3';
 import { createStore, mutatorAction } from 'satcheljs';
-import {
-  RecoilRoot,
-  atom,
-  useRecoilState_TRANSITION_SUPPORT_UNSTABLE,
-} from 'recoil';
+import { configureStore, createSlice } from '@reduxjs/toolkit';
+import { Provider, useSelector, useDispatch } from 'react-redux';
 import { myStore } from './myStore';
 import { MountCallback } from './MountCallback';
 
@@ -22,11 +19,6 @@ const setText = mutatorAction('SET_TEXT', function(newText) {
 
 const upCount = mutatorAction('UP_COUNT', function() {
   store().count++;
-});
-
-const textAtom = atom({
-  key: 'textAtom',
-  default: 'TEST3',
 });
 
 let startTime = 0.0;
@@ -63,6 +55,27 @@ const resetTimer = function() {
   counting = true;
 }
 
+const textSlice = createSlice({
+  name: 'reduxTest',
+  initialState: {
+    value: "TEST3"
+  },
+  reducers: {
+    setReduxText: (state, newText) => {
+      state.value = newText.payload;
+    }
+  }
+});
+
+const textSliceReducer = textSlice.reducer;
+const reduxStore = configureStore({
+  reducer: {
+    reduxTest: textSliceReducer
+  }
+});
+
+const { setReduxText } = textSlice.actions;
+
 // State: x.0 for no startTransition. x.5 for startTransition
 // 0.x for react managed state
 // 1.x for mobx managed state directly used
@@ -75,7 +88,8 @@ const resetTimer = function() {
 const AppBase = function AppBase() {
   const [getMode, setMode] = React.useState(0.0);
   const [getState, setState] = React.useState("TEST2");
-  const [getAtom, setAtom] = useRecoilState_TRANSITION_SUPPORT_UNSTABLE(textAtom);
+  const dispatch = useDispatch();
+  const reduxValue = useSelector((state) => state.reduxTest.value);
 
   let inputRef = null;
   const setRef = element => {
@@ -96,9 +110,9 @@ const AppBase = function AppBase() {
     } else if (getMode < 5.0) {
       return store().count;
     } else {
-      return getAtom;
+      return reduxValue;
     }
-  }, [getMode, getState, store().text, deferredText, myStore.getText(), store().count, getAtom]);
+  }, [getMode, getState, store().text, deferredText, myStore.getText(), store().count, reduxValue]);
 
   const updateTextState = () => {
     if (getMode < 1.0) {
@@ -108,7 +122,7 @@ const AppBase = function AppBase() {
     } else if (getMode < 4.0) {
       myStore.changeText(parseInt(inputRef.value));
     } else if (getMode < 6.0) {
-      setAtom(inputRef.value);
+      dispatch(setReduxText(inputRef.value)) 
     }
   }
 
@@ -190,7 +204,7 @@ const AppBase = function AppBase() {
         <button onClick={() => {setMode(getMode + (2 - parseInt(getMode)))}}>Mobx state useDefferredValue</button>
         <button onClick={() => {setMode(getMode + (3 - parseInt(getMode)))}}>Custom sync state</button>
         <button onClick={() => {setMode(getMode + (4 - parseInt(getMode)))}}>Rerender experiment</button>
-        <button onClick={() => {setMode(getMode + (5 - parseInt(getMode)))}}>Recoil</button>
+        <button onClick={() => {setMode(getMode + (5 - parseInt(getMode)))}}>Redux</button>
       </div>
       <div>
         <button onClick={() => {setMode(parseInt(getMode))}}>no startTransition</button>
@@ -219,12 +233,12 @@ const App = function App({startAsNewMobx}) {
   console.log(isNewVersion);
   let VersionedApp = isNewVersion ? AppNew : AppOld;
   return (
-    <RecoilRoot><div>
+    <Provider store={reduxStore}><div>
     Mobx version: {isNewVersion ? "new" : "old"}
         <button onClick={() => {const v = isNewVersion; setIsNewVersion(!v);}}>Toggle Version</button>
     <VersionedApp/>
   </div>
-  </RecoilRoot>);
+  </Provider>);
 };
 
 export default App;
